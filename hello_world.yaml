@@ -1,0 +1,67 @@
+heat_template_version: 2013-05-23
+
+description: >
+  Hello world HOT template that just defines a single server.
+  Contains just base features to verify base HOT support.
+  
+parameters:
+  key_name:
+    type: string
+    description: Name of an existing key pair to use for the server
+    constraints:
+      - custom_constraint: nova.keypair
+  flavor:
+    type: string
+    description: Flavor for the server to be created
+    default: m1.small
+    constraints:
+      - custom_constraint: nova.flavor
+  image:
+    type: string
+    description: Image ID or image name to use for the server
+    constraints:
+      - custom_constraint: glance.image
+
+  availability_zone:
+    type: string
+    description: Name of availability zone in which to create the instance
+ 
+  user_name:
+    type: string
+    description: Name of the existing user
+
+resources:
+  server:
+    type: OS::Nova::Server
+    properties:
+      user_data_format: SOFTWARE_CONFIG
+      key_name: { get_param: key_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+            
+  hello_sc:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      inputs:
+        - name: USER_NAME
+      config: |
+        #!/bin/bash
+        echo "Hello $USER_NAME!" > /tmp/hello.out
+        
+  hello_sd:
+    type: OS::Heat::SoftwareDeployment
+    properties:
+       server: { get_resource: server }
+       config: { get_resource: hello_sc }
+       input_values:
+          USER_NAME : { get_param: user_name }
+          
+outputs:
+  Server_IP:
+    description: The IP address of the deployed server
+    value: { get_attr: [server, first_address] }
+  Server_Image:
+    description: The image used to create the server
+    value: { get_param: image }
+
