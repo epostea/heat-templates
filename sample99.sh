@@ -1,3 +1,4 @@
 #!/bin/bash
-# Check the phases of the Pod resources in that namespace
-kubectl get pods --all-namespaces | awk '{print $2" "$4}' | grep -E 'Pending|Unknown'
+# Investigate the cause of the issue based on the Pod's specification and resource utilization.
+kubectl describe pod <pod-name>
+kubectl top pod <pod-name>
